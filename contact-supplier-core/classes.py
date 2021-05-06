@@ -143,3 +143,88 @@ class Supplier:
 
  def get_last_reply_and_type(self):
   assert self.messages
+
+
+
+class Contact:
+  def __init__(self, contact_json):
+    self.allowBroadcast = contact_json.get('allowBroadcast',"")
+    self.allowSMS  = contact_json.get('allowSMS',"")
+    self.contactStatus =  contact_json.get('contactStatus',"")
+    self.created =  contact_json.get('created',"")
+    self.currentFlowNodeId =  contact_json.get('currentFlowNodeId',"")
+    self.customParams =  contact_json.get('customParams',"")
+    self.firstName =  contact_json.get('firstName',"")
+    self.fullName =  contact_json.get('fullName',"")
+    self.id =  contact_json.get('id',"")
+    self.isDeleted =  contact_json.get('isDeleted',"")
+    self.isInFlow =  contact_json.get('isInFlow',"")
+    self.lastFlowId =  contact_json.get('lastFlowId',"")
+    self.lastUpdated =  contact_json.get('lastUpdated',"")
+    self.optedIn =  contact_json.get('optedIn',"")
+    self.phone =  contact_json.get('phone',"")
+    self.photo =  contact_json.get('photo',"")
+    self.source =  contact_json.get('source',"")
+    self.tags =  contact_json.get('tags',"")
+    self.teamIds =  contact_json.get('teamIds',"")
+    self.wAid =  contact_json.get('wAid',"")
+
+    pass
+
+  def get_introbot_contact(self, contact):
+    url = constants.get_introbot_contacts
+    response = requests.request("GET", url, headers={}, data={})
+    j = json.loads(response.text)
+
+    
+class SupplierList:
+  supplier_json = {}
+  page_nums = []
+  list_of_suppliers = []
+  next_page_num = 1
+
+  def __init__(self):
+    pass
+
+  def get_suppliers(self, num_suppliers=10, page_num=1):
+    
+    response = requests.request("GET", 
+    constants.get_contacts_url, 
+    headers=constants.get_contact_headers, 
+    data={'pageSize': '{0}'.format(num_suppliers),'pageNumber': '{0}'.format(page_num)},
+    files=constants.get_contacts_files)
+    j = json.loads(response.text)
+
+    return j
+
+  def parse_suppliers(self, response_json):
+    # Update page_num
+    self.page_nums.append(response_json['link']['pageNumber'])
+    contacts = []
+    if not len(response_json['contact_list']):
+      raise EOFError
+    for contact in response_json['contact_list']:
+      parsed_contact = Contact(contact)
+      contacts.append(parsed_contact)
+    
+    self.list_of_suppliers.extend(contacts)
+
+  
+  def get_and_parse(self, num_suppliers=10, page_num=1):
+    while page_num < constants.page_num_max:
+      print("getting data for ", page_num)
+      supplier_json = self.get_suppliers(num_suppliers=num_suppliers, page_num=page_num)
+      try:
+        self.parse_suppliers(supplier_json)
+      except EOFError:
+        break
+      page_num+=1
+  
+  def turn_into_dataframe(self):
+    pass
+
+
+
+if __name__ == "__main__":
+    supp_list = SupplierList()
+    supp_list.get_suppliers()

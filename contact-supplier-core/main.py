@@ -66,10 +66,28 @@ def process(csv_file_path):
     print(supplier_df)
     #save it to a csv file
     supplier_df.to_csv('sample1.csv')
+
+def get_contacts():
+    supp = SupplierList()
+    supp.get_and_parse()
+    for contact in supp.list_of_suppliers:
+        print(contact.id, contact.firstName, contact.phone)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='lets find some suppliers')
     parser.add_argument('--csv_path', type=str,
-                      help='csv containing supplier data')
+                      help='csv containing supplier data', default="")
+    parser.add_argument('--mode', type=str,
+                      help='mode 1: get contacts. \nmode2: process csv', default="")
+
     args = parser.parse_args()
-    print(args.csv_path)
-    process(args.csv_path)
+    print(args.csv_path, args.mode)
+    csv_file_path = args.csv_path
+    mode = args.mode
+
+    if mode == '1':
+        get_contacts()
+    elif mode == '2':
+        process(csv_file_path)
+    
