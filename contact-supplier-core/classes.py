@@ -175,7 +175,8 @@ class Contact:
     url = constants.get_introbot_contacts
     response = requests.request("GET", url, headers={}, data={})
     j = json.loads(response.text)
-
+  
+  def make_patch()
     
 class SupplierList:
   supplier_json = {}
