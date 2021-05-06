@@ -33,6 +33,7 @@ class Message:
   self.finalText = message_dict.get("finalText ", None)
   self.template = message_dict.get("template ", None)
   self.mediaHeaderLink = message_dict.get("mediaHeaderLink ", None)
+  self.is_bot = self.operatorName if self.operatorName else 'Supplier'
   self.format()
 
  def format(self):
