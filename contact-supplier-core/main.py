@@ -30,7 +30,7 @@ def process(csv_file_path):
       - entity - what the bot is asking on
       - reply - what the supplier replied
     '''
-    thread_cols = ['cid','msg_id','reply_msg_id','msg_txt','reply_msg_txt','entity','reply']
+    thread_cols = ['cid','msg_id','reply_msg_id','msg_txt','reply_msg_txt','entity','reply','comments']
     supplier_df = pd.DataFrame(columns = columns)
     thread_df = pd.DataFrame(columns = thread_cols)
     suppliers = []
@@ -91,18 +91,28 @@ def process(csv_file_path):
                 else:
                     reply_msg_id = msg.id
                     reply_msg_txt = msg.text
+                    comments = None
+                    #check if the reply is not a number and add to comments
+                    if not reply_msg_txt.isdigit():
+                        comments = reply_msg_txt
                     tt = nn.split('\n')
                     is_reply = True
                     thread_id = tid
                     temp = []
+                    flag = False
+                    # Check if the reply is as expected by the flow (True if yes else false)
+                    reply = None
                     for i in tt:
                         if reply_msg_txt in i:
+                            flag = True
                             temp.append(i)
-                    reply = temp[-1][2:]
+                    #if reply is as expected then update the reply field
+                    if flag:
+                        reply = temp[-1][2:]
                     var -= 1
             if var == 0:
                 # append the row to the dataframe
-                thread_df = thread_df.append({'cid':cid,'msg_id':msg_id,'reply_msg_id': reply_msg_id,'msg_txt':msg_txt,'reply_msg_txt':reply_msg_txt,'entity':entity,'reply':reply},ignore_index = True)
+                thread_df = thread_df.append({'cid':cid,'msg_id':msg_id,'reply_msg_id': reply_msg_id,'msg_txt':msg_txt,'reply_msg_txt':reply_msg_txt,'entity':entity,'reply':reply,'comments':comments},ignore_index = True)
 
             #append the row to the dataframe
             supplier_df = supplier_df.append({'cid':cid,'id':id_,'assi_id': assi_id,'timestamp':timestamp,'is_bot':is_bot,'message':message,'is_reply':is_reply,'thread_id':thread_id},ignore_index  = True)
@@ -110,8 +120,8 @@ def process(csv_file_path):
     print(supplier_df)
     #save it to a csv file
     print(thread_df)
-    supplier_df.to_csv('sample.csv')
-    thread_df.to_csv('thread.csv')
+    supplier_df.to_csv('sample111.csv')
+    thread_df.to_csv('thread1.csv')
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='lets find some suppliers')
     parser.add_argument('--csv_path', type=str,
