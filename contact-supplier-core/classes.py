@@ -29,11 +29,11 @@ class Message:
   self.conversationId = message_dict.get("conversationId", None)
   self.ticketId = message_dict.get("ticketId", None)
   self.event_type = message_dict.get("eventType", None)
-  self.eventDescription = message_dict.get("eventDescription ", None)
+  self.eventDescription = message_dict.get("eventDescription", None)
   self.finalText = message_dict.get("finalText ", None)
   self.template = message_dict.get("template ", None)
   self.mediaHeaderLink = message_dict.get("mediaHeaderLink ", None)
-  self.is_bot = self.operatorName if self.operatorName else 'Supplier'
+  self.is_bot = True if self.operatorName else False
   self.format()
 
  def format(self):
