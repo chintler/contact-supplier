@@ -11,7 +11,9 @@ class Message:
  def __init__(self, message_dict):
   print("ft", message_dict.get("finalText ", None))
 
+
   self.replySourceMessage = message_dict.get("replySourceMessage", None)
+  self.type = message_dict.get("type",None)
   self.text = message_dict.get("text", None)
   self.message_type = message_dict.get("type", None)
   self.data = message_dict.get("data", None)
@@ -20,7 +22,7 @@ class Message:
   self.statusString = message_dict.get("statusString", None)
   self.avatarUrl = message_dict.get("avatarUrl", None)
   self.assignedId = message_dict.get("assignedId", None)
-  self.operatorName = message_dict.get("operatorName", None)
+  self.operatorName = message_dict.get("operatorName", None)  
   self.localMessageId = message_dict.get("localMessageId", None)
   self.failedDetail = message_dict.get("failedDetail", None)
   self.contacts = message_dict.get("contacts", None)
@@ -29,12 +31,11 @@ class Message:
   self.conversationId = message_dict.get("conversationId", None)
   self.ticketId = message_dict.get("ticketId", None)
   self.event_type = message_dict.get("eventType", None)
-  self.eventDescription = message_dict.get("eventDescription ", None)
+  self.eventDescription = message_dict.get("eventDescription", None)
   self.finalText = message_dict.get("finalText ", None)
   self.template = message_dict.get("template ", None)
   self.mediaHeaderLink = message_dict.get("mediaHeaderLink ", None)
-  self.is_bot = self.operatorName if self.operatorName else 'Supplier'
-  self.format()
+  self.is_bot = True if self.operatorName else False
 
  def format(self):
   if self.text:
@@ -46,7 +47,6 @@ class Message:
   if self.timestamp:
    self.timestamp = datetime.datetime.fromtimestamp(
     float(self.timestamp))
-
 
 class MessageHandler:
  messages = []
@@ -63,11 +63,11 @@ class MessageHandler:
          files=constants.get_message_files)
   self.message_dict = json.loads(response.text)
   pprint.pprint(self.message_dict)
-
   return self.message_dict
 
  def build_message(self, message_dict):
   message = Message(message_dict)
+  #message.get_user()
   return message
 
  def parse_messages(self, message_json={}):
@@ -142,4 +142,4 @@ class Supplier:
    self.is_valid = False
 
  def get_last_reply_and_type(self):
-  assert self.messages
+  print(self.messages)
