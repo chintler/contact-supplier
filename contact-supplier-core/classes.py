@@ -13,7 +13,6 @@ class Message:
 
 
   self.replySourceMessage = message_dict.get("replySourceMessage", None)
-  self.type = message_dict.get("type",None)
   self.text = message_dict.get("text", None)
   self.message_type = message_dict.get("type", None)
   self.data = message_dict.get("data", None)
@@ -36,6 +35,7 @@ class Message:
   self.template = message_dict.get("template ", None)
   self.mediaHeaderLink = message_dict.get("mediaHeaderLink ", None)
   self.is_bot = True if self.operatorName else False
+  self.format()
 
  def format(self):
   if self.text:
