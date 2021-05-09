@@ -6,7 +6,7 @@ import os
 WATI_SERVER_URL = os.environ.get('WATI_SERVER_URL')
 WATI_SERVER_RETRIEVE_TOKEN = os.environ.get('WATI_SERVER_RETRIEVE_TOKEN')
 WATI_SERVER_SEND_TOKEN = os.environ.get('WATI_SERVER_SEND_TOKEN')
-MIN_POOL_SIZE = 4
+MIN_POOL_SIZE = 100 # Add req value as per req no of rows
 
 get_message_url = "https://{0}/api/v1/getMessages/{1}"
 get_message_payload = {'pageSize': '10', 'pageNumber': '1'}
