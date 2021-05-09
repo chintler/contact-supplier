@@ -7,9 +7,73 @@ import argparse
 import utils
 from classes import *
 
-def process(csv_file_path):
+
+def process_supplier_message(supp):
+    for index,msg in enumerate(supp.messages[::-1]):
+        if index == len(supp.messages)-1:
+            #if its last message do this
+            cid = msg.conversationId
+            id_ = msg.id
+            assi_id = None
+            timestamp = None
+            is_bot = msg.is_bot
+            message = msg.eventDescription
+            is_reply = False
+            thread_id = None
+        elif index == 0:
+            #for the begining of conversation
+            cid = msg.conversationId
+            id_ = msg.id
+            assi_id = msg.assignedId
+            timestamp = msg.timestamp
+            is_bot = msg.is_bot
+            is_reply = False
+            thread_id = None
+            message = msg.text
+        else:
+            # for normal messages
+            cid = msg.conversationId
+            id_ = msg.id
+            assi_id = msg.assignedId
+            timestamp = msg.timestamp
+            is_bot = msg.is_bot
+            is_reply = False
+            thread_id = None
+            message = msg.text
+            # get the threads here
+            if is_bot:
+                msg_id = msg.id
+                msg_txt = msg.text
+                nn = msg_txt
+                #temp = msg.text
+                entity = msg.text
+                tid = id_
+                var = 1
+            else:
+                reply_msg_id = msg.id
+                reply_msg_txt = msg.text
+                tt = nn.split('\n')
+                is_reply = True
+                thread_id = tid
+                temp = []
+                for i in tt:
+                    if reply_msg_txt in i:
+                        temp.append(i)
+                reply = temp[-1][2:]
+                var -= 1
+        if var == 0:
+                # append the row to the dataframe
+            thread_df = thread_df.append({'cid':cid,'msg_id':msg_id,'reply_msg_id': reply_msg_id,'msg_txt':msg_txt,'reply_msg_txt':reply_msg_txt,'entity':entity,'reply':reply},ignore_index = True)
+
+        #append the row to the dataframe
+        supplier_df = supplier_df.append({'cid':cid,'id':id_,'assi_id': assi_id,'timestamp':timestamp,'is_bot':is_bot,'message':message,'is_reply':is_reply,'thread_id':thread_id},ignore_index  = True)
+        return supplier_df, thread_df
+
+
+
+def process_df(supplier_data_df):
     row_limiter = 0
-    df = utils.load_suppliers_csv(csv_file_path)
+    df = supplier_data_df
     '''
 
     The columns are 
@@ -40,6 +104,11 @@ def process(csv_file_path):
         print(rownum, row['name'])
         supplier = Supplier(name=row['name'], pincode=row['pincode'],
                             contact_num=row['contact'], supplier_type=row['type'])
+        # TODO: Make supplier contact
+        contact_obj = Contact()
+        contact_obj.phone = row['contact']
+        contact_obj.get_introbot_contact()
+        contact_obj.construct_from_json()
         suppliers.append(supplier)
         if rownum == row_limiter:
             break
@@ -48,6 +117,7 @@ def process(csv_file_path):
     var = 100
     nn = ''
     for supp in suppliers:
+        supplier_df, thread_df = process_supplier_message(supp)
         for index,msg in enumerate(supp.messages[::-1]):
             if index == len(supp.messages)-1:
                 #if its last message do this
@@ -107,13 +177,10 @@ def process(csv_file_path):
             #append the row to the dataframe
             supplier_df = supplier_df.append({'cid':cid,'id':id_,'assi_id': assi_id,'timestamp':timestamp,'is_bot':is_bot,'message':message,'is_reply':is_reply,'thread_id':thread_id},ignore_index  = True)
 
-    print(supplier_df)
-    supplier_df.to_csv('sample1.csv')
+    supplier_df.to_csv('sample_supplier.csv')
+    thread_df.to_csv('sample_thread.csv')
 
-    print(thread_df)
-    supplier_df.to_csv('sample.csv')
-    thread_df.to_csv('thread.csv')
-
+    return supplier_df, thread_df
     #save it to a csv file
 
 
@@ -123,6 +190,9 @@ def get_contacts():
     for contact in supp.list_of_suppliers:
         print(contact.id, contact.firstName, contact.phone)
 
+def process(csv_file_path):
+    df = utils.load_suppliers_csv(csv_file_path)
+    process_df(df)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='lets find some suppliers')

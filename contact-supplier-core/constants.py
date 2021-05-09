@@ -20,10 +20,13 @@ get_contacts_files = []
 get_contact_payload={'pageSize': '{0}','pageNumber': '{0}'}
 get_contact_headers = {'Authorization': 'Bearer {}'.format(WATI_SERVER_RETRIEVE_TOKEN),  'Cookie': '__cfduid=dc533c9ba4cb8c277f79928e3978a52251619958624'}
 
-get_introbot_contacts = "api.covidcitizens.org/api/v1/leadbyquerybypage?phone={}"
+get_introbot_contacts = "http://api.covidcitizens.org/api/v1/leadbyquerybypage?phone={0}"
 
-
-page_num_max = 260
+make_patch_url = "http://api.covidcitizens.org/api/v1/updatelead?phone={0}&contact_type=Mobile"
+make_patch_headers = {
+  'Content-Type': 'application/json'
+}
+supplier_list_page_num_max = 3
 
 
 send_template_url = "https://{0}/api/v1/sendTemplateMessage/{1}"

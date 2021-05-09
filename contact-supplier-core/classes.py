@@ -6,10 +6,9 @@ import traceback
 import utils
 import pprint
 
-
+import pandas as pd
 class Message:
  def __init__(self, message_dict):
-  print("ft", message_dict.get("finalText ", None))
 
   self.replySourceMessage = message_dict.get("replySourceMessage", None)
   self.text = message_dict.get("text", None)
@@ -147,7 +146,11 @@ class Supplier:
 
 
 class Contact:
-  def __init__(self, contact_json):
+  introbot_json_data = {}
+  def __init__(self, contact_json={}):
+    self.construct_from_json(contact_json)
+
+  def construct_from_json(self, contact_json):
     self.allowBroadcast = contact_json.get('allowBroadcast',"")
     self.allowSMS  = contact_json.get('allowSMS',"")
     self.contactStatus =  contact_json.get('contactStatus',"")
@@ -168,15 +171,27 @@ class Contact:
     self.tags =  contact_json.get('tags',"")
     self.teamIds =  contact_json.get('teamIds',"")
     self.wAid =  contact_json.get('wAid',"")
+    self.pincode = ""
+    self.category = ""
 
-    pass
 
-  def get_introbot_contact(self, contact):
-    url = constants.get_introbot_contacts
+  def get_introbot_contact(self):
+    url = constants.get_introbot_contacts.format(self.phone)
     response = requests.request("GET", url, headers={}, data={})
     j = json.loads(response.text)
+    self.introbot_json_data = j
+    if len(self.introbot_json_data['data']) > 0:
+      self.category = self.introbot_json_data['data'][0]['category']
+    else:
+      self.category = ""
+    return j
   
-  def make_patch()
+  def send_patch(self, payload = {}):
+    url = constants.make_patch_url
+    payload='{"sb_twilio":"i"}'
+    response = requests.request("PATCH", url, headers=constants.make_patch_url.format(self.phone), data=payload)
+    print(response.text)
+
     
 class SupplierList:
   supplier_json = {}
@@ -188,7 +203,8 @@ class SupplierList:
     pass
 
   def get_suppliers(self, num_suppliers=10, page_num=1):
-    
+
+    # WATI contacts list
     response = requests.request("GET", 
     constants.get_contacts_url, 
     headers=constants.get_contact_headers, 
@@ -205,14 +221,18 @@ class SupplierList:
     if not len(response_json['contact_list']):
       raise EOFError
     for contact in response_json['contact_list']:
+      # Construct with data from wati
       parsed_contact = Contact(contact)
+      # Then, load up data from introbot
+      parsed_contact.get_introbot_contact()
+      msg_handler = MessageHandler(parsed_contact.phone)
       contacts.append(parsed_contact)
     
     self.list_of_suppliers.extend(contacts)
 
   
   def get_and_parse(self, num_suppliers=10, page_num=1):
-    while page_num < constants.page_num_max:
+    while page_num < constants.supplier_list_page_num_max:
       print("getting data for ", page_num)
       supplier_json = self.get_suppliers(num_suppliers=num_suppliers, page_num=page_num)
       try:
@@ -222,10 +242,19 @@ class SupplierList:
       page_num+=1
   
   def turn_into_dataframe(self):
+    assert len(self.list_of_suppliers)>0
+    df = pd.DataFrame()
+    for supp in self.list_of_suppliers:
+      print(pprint.pprint(vars(supp)))
+      df.append(vars(supp))
+      # df.append({'name':supp.name,'pincode':supp.pincode, 'contact'})
+      # (name=row['name'], pincode=row['pincode'],contact_num=row['contact'], supplier_type=row['type'])
+    df.to_csv("wati_supp_df")
     pass
 
 
 
 if __name__ == "__main__":
     supp_list = SupplierList()
-    supp_list.get_suppliers()
+    supp_list.get_and_parse()
+    supp_list.turn_into_dataframe()
