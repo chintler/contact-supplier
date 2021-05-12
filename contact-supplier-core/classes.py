@@ -9,10 +9,11 @@ import pprint
 
 class Message:
  def __init__(self, message_dict):
-  print("ft", message_dict.get("finalText ", None))
+  #print("ft", message_dict.get("finalText ", None))
 
 
   self.replySourceMessage = message_dict.get("replySourceMessage", None)
+  self.type = message_dict.get("type",None)
   self.text = message_dict.get("text", None)
   self.message_type = message_dict.get("type", None)
   self.data = message_dict.get("data", None)
@@ -35,7 +36,6 @@ class Message:
   self.template = message_dict.get("template ", None)
   self.mediaHeaderLink = message_dict.get("mediaHeaderLink ", None)
   self.is_bot = True if self.operatorName else False
-  self.format()
 
  def format(self):
   if self.text:
@@ -62,7 +62,7 @@ class MessageHandler:
          data=constants.get_message_payload,
          files=constants.get_message_files)
   self.message_dict = json.loads(response.text)
-  pprint.pprint(self.message_dict)
+  #pprint.pprint(self.message_dict)
   return self.message_dict
 
  def build_message(self, message_dict):
@@ -135,6 +135,7 @@ class Supplier:
   self.message_json = self.msg_handler.get_messages(self.contact_num)
 
  def get_parsed_messages(self):
+  #print('hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
   msg_handler = MessageHandler()
   try:
    self.messages = msg_handler.get_parsed_messages(self.contact_num)
@@ -142,4 +143,6 @@ class Supplier:
    self.is_valid = False
 
  def get_last_reply_and_type(self):
-  print(self.messages)
+  pass
+  #print('-----------------------------------------------------------------------------------------')
+  #print(self.messages)
