@@ -18,7 +18,7 @@ def get_data(df):
         #print('i',i)
         doc = nlp(i)
         enta = [(ent.text, ent.label_) for ent in doc.ents]
-        print('enta',enta)
+        #print('enta',enta)
         if enta and enta[0][1]:
             ent = enta[0][1]
             #print('ent',ent)

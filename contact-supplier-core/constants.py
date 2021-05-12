@@ -6,10 +6,10 @@ import os
 WATI_SERVER_URL = os.environ.get('WATI_SERVER_URL')
 WATI_SERVER_RETRIEVE_TOKEN = os.environ.get('WATI_SERVER_RETRIEVE_TOKEN')
 WATI_SERVER_SEND_TOKEN = os.environ.get('WATI_SERVER_SEND_TOKEN')
-MIN_POOL_SIZE = 4
+MIN_POOL_SIZE = 300
 
 get_message_url = "https://{0}/api/v1/getMessages/{1}"
-get_message_payload = {'pageSize': '10', 'pageNumber': '1'}
+get_message_payload = {'pageSize': '100', 'pageNumber': '1'}
 get_message_files = []
 get_message_headers = {'Authorization': 'Bearer {}'.format(WATI_SERVER_RETRIEVE_TOKEN),  'Cookie': '__cfduid=dc533c9ba4cb8c277f79928e3978a52251619958624'}
 
