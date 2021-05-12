@@ -20,3 +20,5 @@ def multiprocess_supplier_messages(suppliers):
 
     with Pool(4) as pool:
         pool.map(retrieve_messages, suppliers)
+    
+    return True
