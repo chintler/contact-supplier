@@ -6,12 +6,48 @@ import traceback
 import argparse
 import utils
 from classes import *
+global nlp
+nlp = utils.load_model()
+
+def get_data(df,Phone):
+    global nlp
+    columns = ['LANGUAGE','MOBILE','NAME','TIMESTAMP','PINCODE','MATERIAL','AVAILABILITY','DURATION']
+    new_df = pd.DataFrame(columns=columns)
+    d = {}
+    c = 0
+    timestamp = None
+    for index,i in enumerate(df['msg_txt']):
+        timestamp = df.loc[index,'timestamp']
+        #print('i',i)
+        doc = nlp(i)
+        enta = [(ent.text, ent.label_) for ent in doc.ents]
+        #print('enta',enta)
+        if enta and enta[0][1]:
+            ent = enta[0][1]
+            #print('ent',ent)
+        if ent == 'SESSION' or ent == 'HERO':
+            continue
+        if ent:
+            rp = df.loc[index,'reply']
+            #print('reply',rp)
+            if rp:
+                d[ent] = rp
+                c += 1
+            else:
+                d[ent] = df.loc[index,'reply_msg_txt']
+                c += 1
+    if c !=0:
+        d['MOBILE'] = Phone
+    d['TIMESTAMP'] = timestamp
+    new_df = new_df.append(d,ignore_index=True)
+    return new_df
+
 
 def process(df):
     """
     df must be a dataframe of Name, pincode, contact_num and material, with additional columns.
     """
-    row_limiter = 99 # no. of suppliers to get messages for
+    row_limiter = 262 # no. of suppliers to get messages for
     '''
 
     The columns are 
@@ -22,6 +58,7 @@ def process(df):
      - message -> text
     '''
     columns = ['cid','id','assi_id','phone','timestamp','is_bot','message','is_reply','thread_id']
+    cols = ['LANGUAGE','MOBILE','NAME','TIMESTAMP','PINCODE','MATERIAL','AVAILABILITY','DURATION']
     '''
     The columns for thread_dataframe are
       - cid - conversation_id
@@ -32,8 +69,9 @@ def process(df):
       - entity - what the bot is asking on
       - reply - what the supplier replied
     '''
-    thread_cols = ['cid','mobile','msg_id','reply_msg_id','msg_txt','reply_msg_txt','entity','reply','comments']
+    thread_cols = ['cid','mobile','timestamp','msg_id','reply_msg_id','msg_txt','reply_msg_txt','entity','reply','comments']
     supplier_df = pd.DataFrame(columns = columns)
+    final_df = pd.DataFrame(columns = cols)
     thread_df = pd.DataFrame(columns = thread_cols)
     suppliers = []
 
@@ -53,6 +91,7 @@ def process(df):
         var = 100
         thread_start_flag = False
         thread_end_flag = False
+        temp_df = pd.DataFrame(columns = thread_cols)
         for index,msg in enumerate(supp.messages[::-1]):
 
             if msg.eventDescription:
@@ -98,7 +137,7 @@ def process(df):
                 thread_id = None
                 
                 if msg_txt and msg_txt.find('English') != -1:
-                    print('Thread started here -------------------------')
+                    #print('Thread started here -------------------------')
                     thread_start_flag = True
 
                 if thread_start_flag:
@@ -144,21 +183,24 @@ def process(df):
                         var -= 1
                 if var == 0:
                     # append the row to the dataframe
-                    thread_df = thread_df.append({'cid':cid,'mobile':contact_num,'msg_id':msg_id,'reply_msg_id': reply_msg_id,'msg_txt':nn,'reply_msg_txt':reply_msg_txt,'entity':entity,'reply':reply,'comments':comments},ignore_index = True)
-                
+                    temp_df = temp_df.append({'cid':cid,'mobile':contact_num,'msg_id':msg_id,'timestamp':timestamp,'reply_msg_id': reply_msg_id,'msg_txt':nn,'reply_msg_txt':reply_msg_txt,'entity':entity,'reply':reply,'comments':comments},ignore_index = True)
+                    thread_df = thread_df.append({'cid':cid,'mobile':contact_num,'msg_id':msg_id,'timestamp':timestamp,'reply_msg_id': reply_msg_id,'msg_txt':nn,'reply_msg_txt':reply_msg_txt,'entity':entity,'reply':reply,'comments':comments},ignore_index = True)
             #append the row to the dataframe
             supplier_df = supplier_df.append({'cid':cid,'id':id_,'assi_id': assi_id,'phone':contact_num,'timestamp':timestamp,'is_bot':is_bot,'message':msg_txt,'is_reply':is_reply,'thread_id':thread_id},ignore_index  = True)
 
-    
+        final_df = final_df.append(get_data(temp_df,contact_num),ignore_index=True)
+
+
+    final_df.dropna(how = 'all',inplace = True)
         #thread_df.to_csv(string)
     #save it to a csv file
-    return supplier_df, thread_df, suppliers
+    return supplier_df, thread_df, suppliers,final_df
     
 def get_active_conversations():
     supp_list = SupplierList()
     replied_suppliers_df = supp_list.get_introbot_repliers()
     
-    supplier_df, thread_df, suppliers = process(replied_suppliers_df)
+    supplier_df, thread_df, suppliers,final_df = process(replied_suppliers_df)
     
     supplier_df, first_last_msg_df = arrange_supplier_df(supplier_df)
     suppliers_to_msg = []
